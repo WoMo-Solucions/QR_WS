@@ -1,0 +1,223 @@
+name: Sync to Public Repo
+on: 
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Load .env file
+        run: |
+          if [ -f .env ]; then
+            echo "🔷 Loading .env file"
+            export $(grep -v '^#' .env | xargs)
+            echo "GITHUB_TOKEN=${GITHUB_TOKEN}" >> $GITHUB_ENV
+            echo "GITHUB_USER=${GITHUB_USER:-ramiju81}" >> $GITHUB_ENV
+            echo "::debug::Loaded GITHUB_TOKEN from .env (first 6 chars): ${GITHUB_TOKEN:0:6}"
+          else
+            echo "🔴 Error: No .env file found"
+            exit 1
+          fi
+          # Validate token format
+          if [ -z "${GITHUB_TOKEN}" ]; then
+            echo "🔴 Error: GITHUB_TOKEN is not set"
+            exit 1
+          fi
+          if [[ ! "${GITHUB_TOKEN}" =~ ^ghp_ ]]; then
+            echo "🔴 Error: GITHUB_TOKEN does not start with 'ghp_'"
+            exit 1
+          fi
+
+      - name: Validate GitHub token
+        run: |
+          echo "🔷 Validating GitHub token (first 6 chars: ${GITHUB_TOKEN:0:6})..."
+          curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" https://api.github.com/user > token_status.txt
+          STATUS=$(cat token_status.txt)
+          if [ "$STATUS" -eq 200 ]; then
+            echo "🟢 Token is valid"
+          else
+            echo "🔴 Token is invalid or expired (HTTP $STATUS)"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Get public repo name
+        id: repo-name
+        run: |
+          PUBLIC_NAME=$(echo "${{ github.repository }}" | sed -E 's|.*/||; s/_Pro$||')
+          PUBLIC_URL="${{ github.repository_owner }}/${PUBLIC_NAME}"
+          echo "REPO_URL=${PUBLIC_URL}" >> $GITHUB_OUTPUT
+          echo "REPO_NAME=${PUBLIC_NAME}" >> $GITHUB_OUTPUT
+          echo "🔷 Public repo: ${PUBLIC_URL}"
+          echo "::debug::Derived public repo name: ${PUBLIC_NAME}, full URL: ${PUBLIC_URL}"
+
+      - name: Verify public repo exists or create it
+        run: |
+          PUBLIC_URL="${{ steps.repo-name.outputs.REPO_URL }}"
+          echo "🔷 Checking if public repo ${PUBLIC_URL} exists..."
+          if ! gh api "repos/${PUBLIC_URL}" > /dev/null 2>&1; then
+            echo "🔷 Creating new public repository ${PUBLIC_URL}"
+            gh repo create "${PUBLIC_URL}" --public
+            sleep 5
+          else
+            echo "🔷 Public repository ${PUBLIC_URL} already exists"
+          fi
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Prepare public repo
+        id: prepare-repo
+        run: |
+          PUBLIC_URL="${{ steps.repo-name.outputs.REPO_URL }}"
+          if git clone "https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${PUBLIC_URL}.git" ../public-repo 2>/dev/null; then
+            echo "🔷 Existing repo cloned"
+            echo "IS_NEW_REPO=false" >> $GITHUB_OUTPUT
+          else
+            echo "🔷 Initializing new repo"
+            mkdir -p ../public-repo
+            cd ../public-repo
+            git init
+            git checkout -b main
+            echo "# ${{ steps.repo-name.outputs.REPO_NAME }}" > README.md
+            echo "Project synchronized from private repository" >> README.md
+            curl -s https://api.github.com/licenses/mit | jq -r '.body' > LICENSE
+            git add README.md LICENSE
+            git commit -m "Initial commit for public repo"
+            git remote add origin "https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${PUBLIC_URL}.git"
+            git push origin main
+            echo "IS_NEW_REPO=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Backup important files
+        run: |
+          mkdir -p ../backup
+          for file in README.md LICENSE .github/ISSUE_TEMPLATE/* .github/PULL_REQUEST_TEMPLATE.md .github/CODEOWNERS .github/CODE_OF_CONDUCT.md; do
+            if [ -f "../public-repo/$file" ]; then
+              mkdir -p "../backup/$(dirname "$file")"
+              cp "../public-repo/$file" "../backup/$file"
+            fi
+          done
+
+      - name: Sync files with advanced filters
+        run: |
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/' \
+            --exclude='node_modules/' \
+            --exclude='.env*' \
+            --exclude='*.secret*' \
+            --exclude='*.key*' \
+            --exclude='*.pem' \
+            --exclude='credentials*' \
+            --exclude='docker-compose.override.yml' \
+            --include='.github/ISSUE_TEMPLATE/***' \
+            --include='.github/projects/***' \
+            --include='docs/***' \
+            --include='src/***' \
+            ./ ../public-repo/
+
+      - name: Restore important files
+        run: |
+          for file in $(find ../backup -type f 2>/dev/null || true); do
+            dest="../public-repo/${file#../backup/}"
+            mkdir -p "$(dirname "$dest")"
+            cp "$file" "$dest"
+          done
+          rm -rf ../backup
+
+      - name: Auto-generate public README if new repo
+        if: steps.prepare-repo.outputs.IS_NEW_REPO == 'true'
+        run: |
+          echo "🔄 Generating public README"
+          echo "# ${{ steps.repo-name.outputs.REPO_NAME }}" > ../public-repo/README.md
+          echo "" >> ../public-repo/README.md
+          echo "## 🔒 About" >> ../public-repo/README.md
+          echo "This is the public version of a private project. Some files may be excluded for security reasons." >> ../public-repo/README.md
+          echo "" >> ../public-repo/README.md
+          echo "## 📦 Included Content" >> ../public-repo/README.md
+          echo "- Core application code" >> ../public-repo/README.md
+          echo "- Documentation" >> ../public-repo/README.md
+          echo "- Issue templates" >> ../public-repo/README.md
+          echo "" >> ../public-repo/README.md
+          echo "## ⚠️ Notice" >> ../public-repo/README.md
+          echo "This repository is automatically synchronized from the private source. Do not make direct changes here." >> ../public-repo/README.md
+
+      - name: Commit and push changes with retry logic
+        id: commit
+        run: |
+          cd ../public-repo
+          git add -A
+          
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            git commit -m "🔀 Sync from private repo [$(date +'%Y-%m-%d %H:%M:%S')]"
+            
+            MAX_RETRIES=3
+            RETRY_DELAY=5
+            attempt=1
+            
+            while [ $attempt -le $MAX_RETRIES ]; do
+              echo "🔷 Attempt $attempt to push changes..."
+              if git push origin main --force-with-lease; then
+                echo "🟢 Push successful"
+                echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
+                break
+              else
+                echo "🟠 Push attempt $attempt failed"
+                echo "::debug::Remote URL: $(git remote get-url origin)"
+                echo "::debug::Git config: $(git config --list)"
+                if [ $attempt -eq $MAX_RETRIES ]; then
+                  echo "🔴 All push attempts failed"
+                  exit 1
+                fi
+                sleep $RETRY_DELAY
+                ((attempt++))
+              fi
+            done
+          else
+            echo "🟡 No changes to sync"
+            echo "HAS_CHANGES=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Create/Update sync status issue
+        if: steps.commit.outputs.HAS_CHANGES == 'true'
+        run: |
+          cd ../public-repo
+          SYNC_ISSUE_TITLE="🔄 Sync Status - ${{ steps.repo-name.outputs.REPO_NAME }}"
+          SYNC_BODY="### Last Sync Details\n\n- **Time**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')\n- **Triggered by**: ${{ github.actor }}\n- **Commit**: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
+          
+          EXISTING_ISSUE=$(gh api "repos/${{ steps.repo-name.outputs.REPO_URL }}/issues" --jq '.[] | select(.title == "'"$SYNC_ISSUE_TITLE"'") | .number' || true)
+          
+          if [ -z "$EXISTING_ISSUE" ]; then
+            gh issue create --title "$SYNC_ISSUE_TITLE" --body "$SYNC_BODY" --repo "${{ steps.repo-name.outputs.REPO_URL }}"
+          else
+            gh issue comment "$EXISTING_ISSUE" --body "$SYNC_BODY\n\n---\n\n*This comment was automatically generated*" --repo "${{ steps.repo-name.outputs.REPO_URL }}"
+          fi
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Post sync summary
+        run: |
+          echo "### 🏁 Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Public Repo**: [${{ steps.repo-name.outputs.REPO_URL }}](https://github.com/${{ steps.repo-name.outputs.REPO_URL }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: $([ ${{ steps.commit.outputs.HAS_CHANGES }} == 'true' ] && echo '🟢 Changes pushed' || echo '🟡 No changes')" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Repo**: $([ ${{ steps.prepare-repo.outputs.IS_NEW_REPO }} == 'true' ] && echo 'Yes' || echo 'No')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sync Time**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
