@@ -103,51 +103,42 @@ html_content = """
 </head>
 <body>
   <div class="vcard">
-    <!-- Fondo degradado ámbar -->
     <div class="amber-fade"></div>
-    
-    <!-- Fondo de imagen -->
     <div class="bg-pattern"></div>
-    
-    <!-- Franja lateral izquierda -->
     <div class="edge-stripe"></div>
 
-    <!-- Contenido principal -->
     <div class="content">
       <div class="logo">
         <img src="statics/img/Logo.png" alt="WoMo Logo">
       </div>
 
-      <h2 class="empresa">WoMo Soluciónˢ</h2>      
-      <h1 class="nombre">Julián Alberto Ramírez</h1>
-      <p class="cargo">CTO & Full Stack Developer</p>
-      <p class="ubicacion">Cali – Colombia</p>
+      <h2 class="empresa"></h2>      
+      <h1 class="nombre"></h1>
+      <p class="cargo"></p>
+      <p class="ubicacion"></p>
 
       <div class="action-buttons">
-        <a href="https://wa.me/573180401930" class="btn-icon whatsapp" title="WhatsApp">
-          <i class="fab fa-whatsapp"></i>
-        </a>
-        <a href="https://www.linkedin.com/company/womo-solucions/" class="btn-icon linkedin" title="LinkedIn">
-          <i class="fab fa-linkedin-in"></i>
-        </a>
-        <a href="mailto:womostd@gmail.com" class="btn-icon email" title="Email">
-          <i class="fas fa-envelope"></i>
-        </a>
-        <a href="https://ramiju81.github.io/WoMo_Solucions/" class="btn-icon portfolio" title="Portafolio">
-          <i class="fas fa-globe"></i>
-        </a>
+        <a href="#" class="btn-icon whatsapp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="btn-icon linkedin" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#" class="btn-icon email" title="Email"><i class="fas fa-envelope"></i></a>
+        <a href="#" class="btn-icon portfolio" title="Portafolio"><i class="fas fa-globe"></i></a>
       </div>
 
+      <!-- Mensaje -->
       <div class="mensaje-box">
         <div class="mensaje">
-          <p>Creamos soluciones digitales simples, útiles y profundamente humanas. <br>
-            Transformamos lo manual en digital.</p>
-            
-          <strong>Es nuestra esencia.</strong>         
+          <p></p>
         </div>
       </div>
+        <!-- Guardar contacto -->
+        <div class="guardar-contacto">
+          <a href="#" id="guardarContacto" title="Guardar contacto">
+            <i class="fas fa-address-book"></i>
+          </a>
+        </div>
     </div>
   </div>
+  <script src="statics/js/scripts.js"></script>
 </body>
 </html>
 """
