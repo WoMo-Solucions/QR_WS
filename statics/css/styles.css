@@ -192,25 +192,49 @@ body {
   }
 }
 
-.guardar-contacto a {
-  background-color: #4285F4 !important;
-  color: white !important;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  text-decoration: none;
-}
-
-.guardar-contacto a:hover {
-  background-color: #3367D6 !important;
-}
-
+/* Botón de Guardar Contacto - Flotante y sin afectar el layout */
 .guardar-contacto {
+  position: absolute; /* Lo saca del flujo normal */
+  bottom: 10px;      /* Distancia desde abajo */
+  right: 20px;       /* Distancia desde la derecha */
+  z-index: 10;       /* Asegura que esté por encima de todo */
+}
+
+.guardar-contacto a {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #4285F4 !important; /* Azul Google */
+  color: white !important;              /* Icono blanco */
+  font-size: 1.2em;
+  text-decoration: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra suave */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.guardar-contacto a:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/*VCF*/
+.guardar-contacto a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4285F4; /* azul estilo Google */
+  color:  white; 
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  text-decoration: none;
+  font-size: 1.5em;
+  transition: background-color 0.3s;
+}
+
+.guardar-contacto a:hover {
+  background-color: #3367D6;
 }
