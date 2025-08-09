@@ -191,3 +191,26 @@ body {
     max-width: 90%;
   }
 }
+
+.guardar-contacto a {
+  background-color: #4285F4 !important;
+  color: white !important;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+  text-decoration: none;
+}
+
+.guardar-contacto a:hover {
+  background-color: #3367D6 !important;
+}
+
+.guardar-contacto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
