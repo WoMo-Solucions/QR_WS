@@ -1,7 +1,9 @@
-/* Estilos base */
 :root {
+  --color-ambar: #4CAF50;  /* Verde principal */
+  --color-ambar-claro: rgba(76, 175, 80, 0.5); /* Verde semitransparente */
+  --color-accent: #3498db; /* Azul (conservado) */
+
   --color-primary: #2c3e50;
-  --color-accent: #3498db;
   --color-text: #333;
 }
 
@@ -16,33 +18,75 @@ body {
 }
 
 .vcard {
+  min-height: auto;    /* Elimina altura fija */
+  padding-bottom: 10px; /* Reduce relleno inferior */
   background: white;
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
   width: 100%;
   max-width: 320px;
+  height: auto;
   position: relative;
   overflow: hidden;
-  display: flex; /* Para la franja lateral */
+  display: flex;
 }
 
-/* Franja lateral izquierda (como en tu imagen) */
+/* Fondos */
+.amber-fade {
+  background: linear-gradient(to bottom, 
+    var(--color-ambar) 0%,
+    var(--color-ambar-claro) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0.3; /* Más transparente para suavizar el verde */
+ 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  z-index: 1;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.bg-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../img/fondo.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Franja lateral */
 .edge-stripe {
   width: 8px;
   background: var(--color-accent);
   flex-shrink: 0;
 }
 
+/* Contenido principal */
 .content {
-  padding: 25px;
+  padding-top: 30px; /* Añade espacio arriba de todo */
+  padding-bottom: 20px; /* Mantiene espacio abajo */
+  padding: 0px 5px !important;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Logo */
 .logo {
   width: 80px;
+  margin-top: 25px !important;
   height: 80px;
-  margin: 0 auto 15px;
+  margin: 5px auto 10px;
   border-radius: 50%;
   background: #f0f0f0;
   display: flex;
@@ -50,6 +94,8 @@ body {
   justify-content: center;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 3;
 }
 
 .logo img {
@@ -63,31 +109,35 @@ body {
   font-weight: 700;
   color: var(--color-primary);
   text-align: center;
-  margin: 0 0 20px;
-}
-
-.nombre, .cargo, .ubicacion {
-  text-align: center;
-  margin: 8px 0;
+  margin: 0 0 5px;
+  margin-top: 15px !important;
+  position: relative;
+  z-index: 3;
 }
 
 .nombre {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text);
+  text-align: center;
+  margin: 5px 0;
 }
 
 .cargo, .ubicacion {
-  font-size: 14px;
+  font-size: 15px;
   color: #666;
+  text-align: center;
+  margin: 5px 0;
 }
 
 /* Botones */
 .action-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  margin: 25px 0;
+  gap: 18px;
+  margin: 10px 0;
+  position: relative;
+  z-index: 3;
 }
 
 .btn-icon {
@@ -102,12 +152,42 @@ body {
 }
 
 /* Mensaje */
+.mensaje-box {
+  padding: 12px;
+  background: transparent;
+  border-radius: 12px;
+  margin: 10px auto 15px;
+  max-width: 280px;
+  position: relative;
+  z-index: 3;
+  margin-top: -10px;  /* Lo sube 10px (ajusta el valor según necesites) */
+  margin-bottom: 10px; /* Reduce espacio inferior */
+  
+}
+
 .mensaje {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.6;
   text-align: center;
   color: #555;
-  padding: 15px;
-  background: #f8f9fa;
+  padding: 12px;
+  background: transparent;
   border-radius: 8px;
+
+  text-align: justify; /* Justifica el texto */
+  text-justify: inter-word; /* Mejora el espaciado entre palabras */
+  hyphens: auto; /* Permite división de palabras (opcional) */
+  padding: 15px; /* Mantén el padding que ya tienes */
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .vcard {
+    max-width: 90%;
+  }
+  
+
+  .mensaje-box {
+    max-width: 90%;
+  }
 }
