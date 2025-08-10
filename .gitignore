@@ -1,0 +1,25 @@
+# .gitignore para proyecto Flask
+
+# Entorno virtual
+venv/
+.env
+
+# Archivos de desarrollo
+*.pyc
+__pycache__/
+instance/
+
+# Base de datos SQLite (si usas PostgreSQL puedes mantener estas líneas por si acaso)
+*.sqlite
+*.db
+
+# Directorio de migraciones (excepto el código de migraciones)
+migrations/versions/
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+
+# Archivos subidos por usuarios (si los almacenas localmente)
+uploads/

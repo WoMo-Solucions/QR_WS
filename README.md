@@ -1,4 +1,4 @@
-# 🎯 QR Generator & HTML VCard - WoMo Soluciónˢ
+# 🎯 QR Generator & HTML VCard
 
 ![Estado](https://img.shields.io/badge/🚀_En_Desarrollo-blue) 
 ![Licencia](https://img.shields.io/badge/Licencia-🔒_Privada-red)
