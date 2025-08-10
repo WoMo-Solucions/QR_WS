@@ -2,7 +2,7 @@ BEGIN:VCARD
 VERSION:3.0
 FN:Julián Alberto Ramírez
 ORG:WoMo Soluciónˢ
-TITLE:Fundador & Jefe de Tecnología | Full Stack & ABAP Developer
+TITLE:Fundador & Jefe de Tecnología
 TEL:+573180401930
 EMAIL:womostd@gmail.com
 URL:https://wa.me/573180401930
@@ -12,4 +12,5 @@ URL:https://ramiju81.github.io/WoMo_Solucions/
 ADR;TYPE=home:;;Cali – Colombia;;;;
 NOTE:Soluciones digitales simples, útiles y profundamente humanas.\nConvertimos procesos manuales en soluciones digitales.\nEs nuestra esencia.
 END:VCARD
+
 
