@@ -36,8 +36,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.querySelector(".mensaje").innerHTML = nota.replace(/\\n/g, "<br>");
 
-            // --- Guardar contacto ---
+            // --- Guardar contacto (nuevo: abrir VCF directo) ---
             const guardarBtn = document.getElementById("guardarContacto");
+            if (guardarBtn) {
+                guardarBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    window.location.href = vcfUrl; // abre directamente el VCF
+                });
+            }
+
+            /* --- Guardar contacto (versión anterior: descarga VCF) ---
             if (guardarBtn) {
                 guardarBtn.addEventListener("click", function (e) {
                     e.preventDefault();
@@ -49,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.body.removeChild(link);
                 });
             }
+            */
         })
         .catch(err => console.error("Error cargando VCF:", err));
 });
