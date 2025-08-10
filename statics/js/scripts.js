@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- Verificar CSS ---
     const stylesheets = Array.from(document.styleSheets);
     if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
-        console.warn('El CSS no se cargó correctamente, cargando de respaldo...');
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = './statics/css/styles.css';
@@ -36,26 +35,20 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".portfolio").href = urls.find(u => u.includes("github") || u.includes("womo")) || "#";
 
             document.querySelector(".mensaje").innerHTML = nota.replace(/\\n/g, "<br>");
+
+            // --- Guardar contacto ---
+            const guardarBtn = document.getElementById("guardarContacto");
+            if (guardarBtn) {
+                guardarBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const link = document.createElement("a");
+                    link.href = vcfUrl;
+                    link.download = `${nombre.replace(/ /g, "_")}.vcf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
         })
         .catch(err => console.error("Error cargando VCF:", err));
-
-    // --- Botón Guardar Contacto ---
-    const guardarBtn = document.getElementById("guardarContacto");
-    if (guardarBtn) {
-        guardarBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-
-            // 🔹 Método para abrir directo el VCF
-            window.location.href = vcfUrl;
-
-            /* 🔸 Método anterior de descarga manual (comentado)
-            const link = document.createElement("a");
-            link.href = vcfUrl;
-            link.download = "WoMo_Solucions.vcf";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            */
-        });
-    }
 });
