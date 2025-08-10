@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- Verificar CSS ---
     const stylesheets = Array.from(document.styleSheets);
     if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
-        console.warn('El CSS no se cargó correctamente, cargando de respaldo...');
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = './statics/css/styles.css';
@@ -20,12 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const cargo = (data.match(/TITLE:(.+)/) || [])[1] || "";
             const telefono = (data.match(/TEL:(.+)/) || [])[1] || "";
             const email = (data.match(/EMAIL:(.+)/) || [])[1] || "";
-            const urlsRaw = [...data.matchAll(/URL:(.+)/g)].map(m => m[1]);
+            const urls = [...data.matchAll(/URL:(.+)/g)].map(m => m[1]);
             const ubicacion = (data.match(/ADR;TYPE=home:;;(.+?);;;;/) || [])[1] || "";
             const nota = (data.match(/NOTE:(.+)/) || [])[1] || "";
-
-            // Filtrar URLs para quitar mails y WhatsApp
-            const urls = urlsRaw.filter(u => !u.includes("mailto:") && !u.includes("wa.me"));
 
             // --- Rellenar HTML ---
             document.querySelector(".nombre").textContent = nombre;
@@ -33,29 +29,26 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(".cargo").textContent = cargo;
             document.querySelector(".ubicacion").textContent = ubicacion;
 
-            document.querySelector(".whatsapp").href = urlsRaw.find(u => u.includes("wa.me")) || "#";
-            document.querySelector(".email").href = "mailto:" + email;
-
+            document.querySelector(".whatsapp").href = urls.find(u => u.includes("wa.me")) || "#";
             document.querySelector(".linkedin").href = urls.find(u => u.includes("linkedin")) || "#";
+            document.querySelector(".email").href = "mailto:" + email;
             document.querySelector(".portfolio").href = urls.find(u => u.includes("github") || u.includes("womo")) || "#";
 
             document.querySelector(".mensaje").innerHTML = nota.replace(/\\n/g, "<br>");
+
+            // --- Guardar contacto ---
+            const guardarBtn = document.getElementById("guardarContacto");
+            if (guardarBtn) {
+                guardarBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const link = document.createElement("a");
+                    link.href = vcfUrl;
+                    link.download = `${nombre.replace(/ /g, "_")}.vcf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
         })
         .catch(err => console.error("Error cargando VCF:", err));
-
-    // --- Botón Guardar Contacto ---
-    const guardarBtn = document.getElementById("guardarContacto");
-    if (guardarBtn) {
-        guardarBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-
-            const partesNombre = nombre.trim().split(" ");
-            const nombreSolo = partesNombre.slice(0, -1).join(" ");
-            const apellido = partesNombre.slice(-1).join(" ");
-            const nombreCompleto = `${nombreSolo} ${apellido}`.trim();
-
-            const urlGoogleContacts = `https://contacts.google.com/new?name=${encodeURIComponent(nombreCompleto)}&email=${encodeURIComponent(email)}`;
-            window.open(urlGoogleContacts, "_blank");
-        });
-    }
 });
