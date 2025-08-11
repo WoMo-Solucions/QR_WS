@@ -2,7 +2,7 @@ import qrcode
 from PIL import Image, ImageDraw
 
 # ---------- CONFIG ----------
-qr_data = "https://ramiju81.github.io/QR_WS/"
+qr_data = "https://womo-solucions.github.io/QR_WS/"
 logo_text_path = "circuito.png"  # imagen del circuito como molde
 qr_logo_path = "logo.png"  # logo central en verde azulado
 out_path = "QR_WSˢ.png"
