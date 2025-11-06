@@ -1,10 +1,9 @@
 // statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
-  // ✅ El VCF está junto a index.html
-
+  // ✅ Ruta real del VCF (está en /statics/)
   const vcfUrl = "./statics/womo.vcf";
 
-  // --- Cargar CSS si no está (sin romper nada de tu HTML) ---
+  // --- Cargar CSS si no está (no interfiere con tu HTML) ---
   try {
     const stylesheets = Array.from(document.styleSheets || []);
     if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
@@ -14,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.head.appendChild(link);
     }
   } catch (e) {
-    // algunos navegadores bloquean acceso a document.styleSheets cross-origin; no es crítico
+    // algunos navegadores bloquean acceso a document.styleSheets; no pasa nada
   }
 
   // --- Leer y procesar VCF ---
@@ -34,43 +33,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const urls = Array.from(data.matchAll(/^URL:(.*)$/gm)).map(m => (m[1] || "").trim());
 
-      // --- Rellenar texto si existen esos elementos en el DOM ---
-      selText(".nombre",   nombre);
-      selText(".empresa",  empresa);
-      selText(".cargo",    cargo);
-      selText(".ubicacion", ubicacion);
+      // --- Rellenar texto (si existen esos elementos) ---
+      safeSetText(".nombre",   nombre);
+      safeSetText(".empresa",  empresa);
+      safeSetText(".cargo",    cargo);
+      safeSetText(".ubicacion", ubicacion);
 
-      // --- Asignar enlaces por dominio ---
-      setHref(".whatsapp", urls.find(u => /wa\.me\//i.test(u)) || null);
-      setHref(".linkedin", urls.find(u => /linkedin\.com\//i.test(u)) || null);
-      setHref(".email",    email ? ("mailto:" + email) : (urls.find(u => /^mailto:/i.test(u)) || null));
+      // --- Detectar enlaces por dominio (sin ocultar nada si falta) ---
+      const urlWhats   = urls.find(u => /wa\.me\//i.test(u)) || null;
+      const urlLinked  = urls.find(u => /linkedin\.com\//i.test(u)) || null;
+      const urlMail    = email ? ("mailto:" + email) : (urls.find(u => /^mailto:/i.test(u)) || null);
 
-      // ✅ Portafolio/Página: SOLO PortiFy (sin fallbacks que puedan coincidir con LinkedIn o GitHub Pages)
+      // ✅ Portafolio = SOLO PortiFy (regex exacta)
       const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
-      const portfolioUrl = urls.find(u => portifyRegex.test(u)) || null; // si no está, se oculta
-      setHref(".portfolio", portfolioUrl);
+      const urlPagina    = urls.find(u => portifyRegex.test(u)) || null;
 
-      // GitHub: solo si está en el VCF (sin fallback)
-      const githubUrl = urls.find(u => /github\.com/i.test(u)) || null;
-      setHref(".github", githubUrl);
+      const urlGithub  = urls.find(u => /github\.com/i.test(u)) || null;
 
-      // Mensaje (respetar \n del VCF)
+      // --- Asignar enlaces solo si existen (no esconder botones) ---
+      safeSetHref(".whatsapp",  urlWhats);
+      safeSetHref(".linkedin",  urlLinked);
+      safeSetHref(".email",     urlMail);
+      safeSetHref(".portfolio", urlPagina); // no cae a LinkedIn ni GitHub Pages
+      safeSetHref(".github",    urlGithub);
+
+      // --- Mensaje: respeta \n del VCF ---
       const mensajeEl = document.querySelector(".mensaje");
-      if (mensajeEl) mensajeEl.innerHTML = (nota || "").replace(/\\n/g, "<br>");
+      if (mensajeEl && nota) mensajeEl.innerHTML = nota.replace(/\\n/g, "<br>");
 
-      // Credencial (si existe)
+      // --- Credencial ---
       const credEl = document.getElementById("credencial");
       if (credEl) {
         const span = credEl.querySelector("span");
-        if (cred && span) {
+        if (span && cred) {
           span.textContent = cred;
           credEl.hidden = false;
-        } else {
-          credEl.hidden = true;
         }
       }
 
-      // Guardar contacto (descargar el mismo VCF)
+      // --- Guardar contacto (descargar VCF en un clic) ---
       const guardarBtn = document.getElementById("guardarContacto");
       if (guardarBtn) {
         guardarBtn.addEventListener("click", function (e) {
@@ -86,30 +87,23 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch(err => {
       console.error("Error cargando VCF:", err);
-      // Oculta botones para evitar enlaces incorrectos
-      [".whatsapp",".linkedin",".email",".portfolio",".github"].forEach(cls => setHref(cls, null));
-      const mensajeEl = document.querySelector(".mensaje");
-      if (mensajeEl) mensajeEl.textContent = 'No fue posible cargar la tarjeta de contacto.';
+      // No tocamos botones ni textos si falla: se quedan como estaban
     });
 });
 
-// Helpers
-function setHref(selector, href) {
+/* ================= Helpers que NO rompen tu UI ================= */
+
+// No ocultar; si existe href nuevo lo pone, si no, deja el que ya tenías
+function safeSetHref(selector, href) {
   const el = document.querySelector(selector);
-  if (!el) return;
-  if (href && href.trim() && href !== "#") {
-    el.href = href.trim();
-    el.target = "_blank";
-    el.rel = "noopener noreferrer";
-    el.style.display = "";
-    el.removeAttribute("hidden");
-  } else {
-    el.href = "#";
-    el.style.display = "none";
-    el.setAttribute("hidden", "hidden");
-  }
+  if (!el || !href || !href.trim()) return;
+  el.href = href.trim();
+  el.target = "_blank";
+  el.rel = "noopener noreferrer";
 }
-function selText(selector, text) {
+
+// No borrar contenido si falta el dato
+function safeSetText(selector, text) {
   const el = document.querySelector(selector);
-  if (el) el.textContent = text || "";
+  if (el && text) el.textContent = text;
 }
