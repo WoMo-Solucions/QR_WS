@@ -1,8 +1,9 @@
 // statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
-  const vcfUrl = "./statics/womo.vcf";
+  // ✅ Usar el VCF que está junto a index.html
+  const vcfUrl = "./womo.vcf";
 
-  // --- Verificar CSS ---
+  // --- Verificar CSS (sin cambios) ---
   const stylesheets = Array.from(document.styleSheets || []);
   if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
     const link = document.createElement('link');
@@ -15,7 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
   fetch(vcfUrl)
     .then(response => response.text())
     .then(data => {
-      // Lecturas robustas (línea completa, multilínea)
       const getLine = (re) => ((data.match(re) || [])[1] || "").trim();
 
       const nombre    = getLine(/^FN:(.*)$/m);
@@ -29,38 +29,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const urls = Array.from(data.matchAll(/^URL:(.*)$/gm)).map(m => (m[1] || "").trim());
 
-      // --- Rellenar HTML ---
+      // --- Rellenar texto (si existen esos elementos) ---
       selText(".nombre", nombre);
       selText(".empresa", empresa);
       selText(".cargo", cargo);
       selText(".ubicacion", ubicacion);
 
-      // Enlaces
-      setHref(".whatsapp",  urls.find(u => u.includes("wa.me")));
-      setHref(".linkedin",  urls.find(u => u.includes("linkedin")));
-      setHref(".email",     email ? ("mailto:" + email) : "");
+      // Enlaces 1:1
+      setHref(".whatsapp", urls.find(u => u.includes("wa.me")));
+      setHref(".linkedin", urls.find(u => u.includes("linkedin")));
+      setHref(".email",    email ? ("mailto:" + email) : "");
 
-      // Portafolio: **PRIORIDAD PORTIFY**, luego fallback (opcional)
+      // ✅ Portafolio = SOLO PortiFy. Si no está, se oculta.
       const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
-      const portfolioUrl = urls.find(u => portifyRegex.test(u))
-                          || urls.find(u => u.includes("womo-solucions.github.io"))
-                          || urls.find(u => u.toLowerCase().includes("womo"));
+      const portfolioUrl = urls.find(u => portifyRegex.test(u)) || null;
       setHref(".portfolio", portfolioUrl);
 
-      // GitHub: si no viene en VCF, usa fallback oficial
-      const githubUrl = urls.find(u => u.includes("github.com")) 
-                     || "https://github.com/orgs/WoMo-Solucions";
+      // GitHub (si existe en el VCF). Sin fallback a nada.
+      const githubUrl = urls.find(u => /github\.com/i.test(u)) || null;
       setHref(".github", githubUrl);
 
-      // Mensaje (respetar \n del VCF)
+      // Mensaje (respeta \n del VCF)
       const mensajeEl = document.querySelector(".mensaje");
       if (mensajeEl) mensajeEl.innerHTML = (nota || "").replace(/\\n/g, "<br>");
 
-      // Certificado profesional (sin texto quemado)
+      // Credencial
       const credEl = document.getElementById("credencial");
-      if (credEl && cred) {
-        credEl.querySelector("span").textContent = cred;
-        credEl.hidden = false;
+      if (credEl) {
+        if (cred) {
+          const span = credEl.querySelector("span");
+          if (span) span.textContent = cred;
+          credEl.hidden = false;
+        } else {
+          credEl.hidden = true;
+        }
       }
 
       // Guardar contacto
@@ -77,14 +79,30 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     })
-    .catch(err => console.error("Error cargando VCF:", err));
+    .catch(err => {
+      console.error("Error cargando VCF:", err);
+      // Si falla, ocultar botones para no abrir enlaces erróneos
+      [".whatsapp",".linkedin",".email",".portfolio",".github"].forEach(cls => setHref(cls, null));
+      const mensajeEl = document.querySelector(".mensaje");
+      if (mensajeEl) mensajeEl.textContent = 'No fue posible cargar la tarjeta de contacto.';
+    });
 });
 
 // Helpers
 function setHref(selector, href) {
   const el = document.querySelector(selector);
   if (!el) return;
-  el.href = (href && href.trim()) ? href : "#";
+  if (href && href.trim()) {
+    el.href = href;
+    el.target = "_blank";
+    el.rel = "noopener noreferrer";
+    el.style.display = "";
+    el.removeAttribute("hidden");
+  } else {
+    el.href = "#";
+    el.style.display = "none";
+    el.setAttribute("hidden", "hidden");
+  }
 }
 function selText(selector, text) {
   const el = document.querySelector(selector);
