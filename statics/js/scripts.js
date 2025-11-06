@@ -1,3 +1,4 @@
+// statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
   const vcfUrl = "./statics/womo.vcf";
 
@@ -39,12 +40,14 @@ document.addEventListener("DOMContentLoaded", function () {
       setHref(".linkedin",  urls.find(u => u.includes("linkedin")));
       setHref(".email",     email ? ("mailto:" + email) : "");
 
-      // 1) Portafolio: toma la URL correcta (GitHub Pages WoMo). Fallback: primer URL con "womo".
-      const portfolioUrl = urls.find(u => u.includes("womo-solucions.github.io")) 
-                        || urls.find(u => u.toLowerCase().includes("womo"));
+      // Portafolio: **PRIORIDAD PORTIFY**, luego fallback (opcional)
+      const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
+      const portfolioUrl = urls.find(u => portifyRegex.test(u))
+                          || urls.find(u => u.includes("womo-solucions.github.io"))
+                          || urls.find(u => u.toLowerCase().includes("womo"));
       setHref(".portfolio", portfolioUrl);
 
-      // 2) GitHub: si no viene en VCF, usa fallback oficial
+      // GitHub: si no viene en VCF, usa fallback oficial
       const githubUrl = urls.find(u => u.includes("github.com")) 
                      || "https://github.com/orgs/WoMo-Solucions";
       setHref(".github", githubUrl);
@@ -53,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const mensajeEl = document.querySelector(".mensaje");
       if (mensajeEl) mensajeEl.innerHTML = (nota || "").replace(/\\n/g, "<br>");
 
-      // 3) Certificado profesional (sin texto quemado)
+      // Certificado profesional (sin texto quemado)
       const credEl = document.getElementById("credencial");
       if (credEl && cred) {
         credEl.querySelector("span").textContent = cred;
