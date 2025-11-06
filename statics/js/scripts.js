@@ -1,7 +1,8 @@
 // statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
   // ✅ El VCF está junto a index.html
-  const vcfUrl = "./womo.vcf";
+
+  const vcfUrl = "./statics/womo.vcf";
 
   // --- Cargar CSS si no está (sin romper nada de tu HTML) ---
   try {
