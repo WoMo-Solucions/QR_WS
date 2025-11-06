@@ -1,16 +1,17 @@
 BEGIN:VCARD
 VERSION:3.0
+N:Ramírez;Julián Alberto;;;
 FN:Julián Alberto Ramírez
 ORG:WoMo Soluciónˢ
 TITLE:Socio Fundador & Visionario Tecnológico
-ROLE:ID Prof. COPNIA 173619-0790420 VLL 
-TEL:+573180401930
-EMAIL:womostd@gmail.com
+ROLE:ID Prof. COPNIA 173619-0790420 VLL
+TEL;TYPE=CELL,VOICE,MSG:+573180401930
+EMAIL;TYPE=INTERNET,PREF:womostd@gmail.com
 URL:https://wa.me/573180401930
 URL:https://www.linkedin.com/company/womo-solucions/
 URL:mailto:womostd@gmail.com
-URL:https://womo-solucions.github.io/WoMo_Solucions/
 URL:https://portify-m264.onrender.com/public/index.html
+URL:https://github.com/womo-solucions
 ADR;TYPE=home:;;Cali – Colombia;;;;
 NOTE:Soluciones digitales simples, útiles y profundamente humanas.\nConvertimos procesos manuales en soluciones digitales.\nEs nuestra esencia.
 END:VCARD
