@@ -3,17 +3,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // ✅ El VCF está junto a index.html
   const vcfUrl = "./womo.vcf";
 
-  // --- Verificar CSS (igual) ---
-  const stylesheets = Array.from(document.styleSheets || []);
-  if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = './statics/css/styles.css';
-    document.head.appendChild(link);
+  // --- Cargar CSS si no está (sin romper nada de tu HTML) ---
+  try {
+    const stylesheets = Array.from(document.styleSheets || []);
+    if (!stylesheets.some(sheet => sheet.href && sheet.href.includes('styles.css'))) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = './statics/css/styles.css';
+      document.head.appendChild(link);
+    }
+  } catch (e) {
+    // algunos navegadores bloquean acceso a document.styleSheets cross-origin; no es crítico
   }
 
   // --- Leer y procesar VCF ---
-  fetch(vcfUrl)
+  fetch(vcfUrl, { cache: "no-store" })
     .then(response => response.text())
     .then(data => {
       const getLine = (re) => ((data.match(re) || [])[1] || "").trim();
@@ -29,23 +33,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const urls = Array.from(data.matchAll(/^URL:(.*)$/gm)).map(m => (m[1] || "").trim());
 
-      // --- Rellenar HTML ---
-      selText(".nombre", nombre);
-      selText(".empresa", empresa);
-      selText(".cargo", cargo);
+      // --- Rellenar texto si existen esos elementos en el DOM ---
+      selText(".nombre",   nombre);
+      selText(".empresa",  empresa);
+      selText(".cargo",    cargo);
       selText(".ubicacion", ubicacion);
 
-      // Enlaces 1:1
-      setHref(".whatsapp",  urls.find(u => u.includes("wa.me")));
-      setHref(".linkedin",  urls.find(u => u.includes("linkedin")));
-      setHref(".email",     email ? ("mailto:" + email) : "");
+      // --- Asignar enlaces por dominio ---
+      setHref(".whatsapp", urls.find(u => /wa\.me\//i.test(u)) || null);
+      setHref(".linkedin", urls.find(u => /linkedin\.com\//i.test(u)) || null);
+      setHref(".email",    email ? ("mailto:" + email) : (urls.find(u => /^mailto:/i.test(u)) || null));
 
-      // ✅ Portafolio = SOLO PortiFy (sin fallbacks que puedan coincidir con LinkedIn)
+      // ✅ Portafolio/Página: SOLO PortiFy (sin fallbacks que puedan coincidir con LinkedIn o GitHub Pages)
       const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
-      const portfolioUrl = urls.find(u => portifyRegex.test(u)) || null;
+      const portfolioUrl = urls.find(u => portifyRegex.test(u)) || null; // si no está, se oculta
       setHref(".portfolio", portfolioUrl);
 
-      // GitHub (si viene en el VCF). Sin fallback a nada.
+      // GitHub: solo si está en el VCF (sin fallback)
       const githubUrl = urls.find(u => /github\.com/i.test(u)) || null;
       setHref(".github", githubUrl);
 
@@ -56,32 +60,32 @@ document.addEventListener("DOMContentLoaded", function () {
       // Credencial (si existe)
       const credEl = document.getElementById("credencial");
       if (credEl) {
-        if (cred) {
-          const span = credEl.querySelector("span");
-          if (span) span.textContent = cred;
+        const span = credEl.querySelector("span");
+        if (cred && span) {
+          span.textContent = cred;
           credEl.hidden = false;
         } else {
           credEl.hidden = true;
         }
       }
 
-      // Guardar contacto (descarga el VCF)
+      // Guardar contacto (descargar el mismo VCF)
       const guardarBtn = document.getElementById("guardarContacto");
       if (guardarBtn) {
         guardarBtn.addEventListener("click", function (e) {
           e.preventDefault();
-          const link = document.createElement("a");
-          link.href = vcfUrl;
-          link.download = `${(nombre || "contacto").replace(/ /g, "_")}.vcf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          const a = document.createElement("a");
+          a.href = vcfUrl;
+          a.download = `${(nombre || "contacto").replace(/ /g, "_")}.vcf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
         });
       }
     })
     .catch(err => {
       console.error("Error cargando VCF:", err);
-      // Oculta botones si falla para no abrir enlaces erróneos
+      // Oculta botones para evitar enlaces incorrectos
       [".whatsapp",".linkedin",".email",".portfolio",".github"].forEach(cls => setHref(cls, null));
       const mensajeEl = document.querySelector(".mensaje");
       if (mensajeEl) mensajeEl.textContent = 'No fue posible cargar la tarjeta de contacto.';
@@ -92,8 +96,8 @@ document.addEventListener("DOMContentLoaded", function () {
 function setHref(selector, href) {
   const el = document.querySelector(selector);
   if (!el) return;
-  if (href && href.trim()) {
-    el.href = href;
+  if (href && href.trim() && href !== "#") {
+    el.href = href.trim();
     el.target = "_blank";
     el.rel = "noopener noreferrer";
     el.style.display = "";
