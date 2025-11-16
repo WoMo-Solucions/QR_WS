@@ -1,6 +1,6 @@
 // statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
-  // ✅ Ruta real del VCF (está en /statics/)
+  // ✅ Ruta real del VCF
   const vcfUrl = "./statics/womo.vcf";
 
   // --- Cargar CSS si no está (no interfiere con tu HTML) ---
@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
       safeSetText(".cargo",    cargo);
       safeSetText(".ubicacion", ubicacion);
 
-      // --- Detectar enlaces por dominio (sin ocultar nada si falta) ---
+      // --- Detectar enlaces por dominio ---
       const urlWhats   = urls.find(u => /wa\.me\//i.test(u)) || null;
       const urlLinked  = urls.find(u => /linkedin\.com\//i.test(u)) || null;
       const urlMail    = email ? ("mailto:" + email) : (urls.find(u => /^mailto:/i.test(u)) || null);
@@ -48,15 +48,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
       const urlPagina    = urls.find(u => portifyRegex.test(u)) || null;
 
-      const urlGithub  = urls.find(u => /github\.com/i.test(u)) || null;
+      const urlGithub   = urls.find(u => /github\.com/i.test(u)) || null;
+
+      // ✅ NUEVO: Instagram
+      const urlInsta    = urls.find(u => /instagram\.com\//i.test(u)) || null;
 
       // --- Asignar enlaces solo si existen (no esconder botones) ---
-      safeSetHref(".whatsapp",  urlWhats);
-      safeSetHref(".linkedin",  urlLinked);
-      safeSetHref(".email",     urlMail);
-      safeSetHref(".portfolio", urlPagina);
-      safeSetHref(".instagram", urlPagina); 
-      safeSetHref(".github",    urlGithub);
+      safeSetHref(".whatsapp",   urlWhats);
+      safeSetHref(".linkedin",   urlLinked);
+      safeSetHref(".email",      urlMail);
+      safeSetHref(".portfolio",  urlPagina); // no cae a LinkedIn ni GitHub Pages
+      safeSetHref(".github",     urlGithub);
+      safeSetHref(".instagram",  urlInsta);  // ✅ botón de Instagram
 
       // --- Mensaje: respeta \n del VCF ---
       const mensajeEl = document.querySelector(".mensaje");
