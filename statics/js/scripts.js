@@ -1,6 +1,6 @@
 // statics/js/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
-  // ✅ Ruta real del VCF
+  // Ruta real del VCF
   const vcfUrl = "./statics/womo.vcf";
 
   // --- Cargar CSS si no está (no interfiere con tu HTML) ---
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.head.appendChild(link);
     }
   } catch (e) {
-    // algunos navegadores bloquean acceso a document.styleSheets; no pasa nada
+    // Algunos navegadores bloquean acceso a document.styleSheets; no pasa nada
   }
 
   // --- Leer y procesar VCF ---
@@ -39,27 +39,33 @@ document.addEventListener("DOMContentLoaded", function () {
       safeSetText(".cargo",    cargo);
       safeSetText(".ubicacion", ubicacion);
 
-      // --- Detectar enlaces por dominio ---
-      const urlWhats   = urls.find(u => /wa\.me\//i.test(u)) || null;
-      const urlLinked  = urls.find(u => /linkedin\.com\//i.test(u)) || null;
-      const urlMail    = email ? ("mailto:" + email) : (urls.find(u => /^mailto:/i.test(u)) || null);
+      // --- Detectar enlaces por dominio (sin ocultar nada si falta) ---
+      const urlWhats   = urls.find(u => /wa\.me\//i.test(u)) || null;          // https://wa.me/573...
+      const urlLinked  = urls.find(u => /linkedin\.com\//i.test(u)) || null;   // LinkedIn empresa
+      const urlMail    = email ? ("mailto:" + email) 
+                               : (urls.find(u => /^mailto:/i.test(u)) || null);
 
-      // ✅ Portafolio = SOLO PortiFy (regex exacta)
+      // Portafolio = URL de PortiFy exacta del VCF
       const portifyRegex = /portify-[^/]+\.onrender\.com\/public\/index\.html/i;
       const urlPagina    = urls.find(u => portifyRegex.test(u)) || null;
 
-      const urlGithub   = urls.find(u => /github\.com/i.test(u)) || null;
+      // GitHub empresa
+      const urlGithub   = urls.find(u => /github\.com\/womo-solucions/i.test(u)) 
+                       || urls.find(u => /github\.com\//i.test(u)) 
+                       || null;
 
-      // ✅ NUEVO: Instagram
-      const urlInsta    = urls.find(u => /instagram\.com\//i.test(u)) || null;
+      // ✅ Instagram (cualquier URL con instagram.com)
+      const urlInstagram = urls.find(u => /instagram\.com\/womo_solucions/i.test(u)) 
+                        || urls.find(u => /instagram\.com\//i.test(u)) 
+                        || null;
 
       // --- Asignar enlaces solo si existen (no esconder botones) ---
       safeSetHref(".whatsapp",   urlWhats);
       safeSetHref(".linkedin",   urlLinked);
       safeSetHref(".email",      urlMail);
-      safeSetHref(".portfolio",  urlPagina); // no cae a LinkedIn ni GitHub Pages
+      safeSetHref(".portfolio",  urlPagina);    // 🌐 Portafolio = PortiFy
       safeSetHref(".github",     urlGithub);
-      safeSetHref(".instagram",  urlInsta);  // ✅ botón de Instagram
+      safeSetHref(".instagram",  urlInstagram); // 📷 Instagram separado
 
       // --- Mensaje: respeta \n del VCF ---
       const mensajeEl = document.querySelector(".mensaje");
@@ -91,11 +97,11 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch(err => {
       console.error("Error cargando VCF:", err);
-      // No tocamos botones ni textos si falla: se quedan como estaban
+      // Si falla, no tocamos nada: los href quedan como en el HTML
     });
 });
 
-/* ================= Helpers que NO rompen tu UI ================= */
+/* ================= Helpers ================= */
 
 // No ocultar; si existe href nuevo lo pone, si no, deja el que ya tenías
 function safeSetHref(selector, href) {
