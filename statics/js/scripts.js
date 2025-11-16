@@ -54,7 +54,8 @@ document.addEventListener("DOMContentLoaded", function () {
       safeSetHref(".whatsapp",  urlWhats);
       safeSetHref(".linkedin",  urlLinked);
       safeSetHref(".email",     urlMail);
-      safeSetHref(".portfolio", urlPagina); // no cae a LinkedIn ni GitHub Pages
+      safeSetHref(".portfolio", urlPagina);
+      safeSetHref(".instagram", urlPagina); 
       safeSetHref(".github",    urlGithub);
 
       // --- Mensaje: respeta \n del VCF ---
