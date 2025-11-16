@@ -55,9 +55,11 @@ document.addEventListener("DOMContentLoaded", function () {
                        || null;
 
       // ✅ Instagram (cualquier URL con instagram.com)
-      const urlInstagram = urls.find(u => /instagram\.com\/womo_solucions/i.test(u)) 
-                        || urls.find(u => /instagram\.com\//i.test(u)) 
-                        || null;
+      // Instagram – ahora detecta con o sin www
+      const urlInstagram = urls.find(u => /instagram\.com\/womo_solucions/i.test(u))
+                           || urls.find(u => /instagram\.com/i.test(u))
+                           || null;
+
 
       // --- Asignar enlaces solo si existen (no esconder botones) ---
       safeSetHref(".whatsapp",   urlWhats);
